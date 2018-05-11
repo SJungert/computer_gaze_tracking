@@ -34,7 +34,7 @@ import scipy.linalg # use numpy if scipy unavailable
 
 def ransac(data,model,n,k,t,d,debug=False,return_all=False):
     """fit model parameters to data using the RANSAC algorithm
-    
+
 This implementation written from pseudocode found at
 http://en.wikipedia.org/w/index.php?title=RANSAC&oldid=116358182
 
@@ -82,20 +82,38 @@ return bestfit
         maybe_idxs, test_idxs = random_partition(n,data.shape[0])
         maybeinliers = data[maybe_idxs,:]
         test_points = data[test_idxs]
-        maybemodel = model.fit(maybeinliers)
-        test_err = model.get_error( test_points, maybemodel)
+        try:
+            maybemodel = model.fit(maybeinliers)
+            #Skip if the angle is complex
+            if isinstance(maybemodel.phi, complex):
+                iterations += 1
+                continue
+
+            test_err = model.get_error( test_points, maybemodel)
+
+        except IndexError:
+            iterations += 1
+            continue
+
+        #print(test_err)
         also_idxs = test_idxs[test_err < t] # select indices of rows with accepted points
         alsoinliers = data[also_idxs,:]
         if debug:
-            print 'test_err.min()',test_err.min()
-            print 'test_err.max()',test_err.max()
-            print 'numpy.mean(test_err)',numpy.mean(test_err)
-            print 'iteration %d:len(alsoinliers) = %d'%(
-                iterations,len(alsoinliers))
+            print('test_err.min()',test_err.min())
+            print('test_err.max()',test_err.max())
+            print('numpy.mean(test_err)',numpy.mean(test_err))
+            print('iteration %d:len(alsoinliers) = %d'%(
+                iterations,len(alsoinliers)))
         if len(alsoinliers) > d:
             betterdata = numpy.concatenate( (maybeinliers, alsoinliers) )
-            bettermodel = model.fit(betterdata)
-            better_errs = model.get_error( betterdata, bettermodel)
+
+            try:
+                bettermodel = model.fit(betterdata)
+                better_errs = model.get_error( betterdata, bettermodel)
+            except IndexError:
+                iterations += 1
+                continue
+
             thiserr = numpy.mean( better_errs )
             if thiserr < besterr:
                 bestfit = bettermodel
@@ -122,7 +140,7 @@ class LinearLeastSquaresModel:
 
     This class serves as an example that fulfills the model interface
     needed by the ransac() function.
-    
+
     """
     def __init__(self,input_columns,output_columns,debug=False):
         self.input_columns = input_columns
@@ -139,7 +157,7 @@ class LinearLeastSquaresModel:
         B_fit = scipy.dot(A,model)
         err_per_point = numpy.sum((B-B_fit)**2,axis=1) # sum squared error per row
         return err_per_point
-        
+
 def test():
     # generate perfect input data
 

@@ -14,7 +14,7 @@ from pandas import *
 import cv2
 
 # Load an color image in grayscale
-img = cv2.imread('david_eye_2.jpg')
+img = cv2.imread('sam_eye_2.jpg')
 #capture = cv2.VideoCapture(2)
 
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -66,7 +66,7 @@ filtered_img = lam * cv2.filter2D(gray, cv2.CV_64F, crcc)
 co = filtered_img + weighted_img
 
 # adjust this value down for darker images
-threshold = 1800
+threshold = 400
 
 data_max = filters.maximum_filter(co, 11)
 data_min = filters.minimum_filter(co, 11)

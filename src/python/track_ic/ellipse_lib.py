@@ -22,8 +22,7 @@ from matplotlib.patches import Ellipse
     ----------
     (*) Halir, R., Flusser, J.: 'Numerically Stable Direct Least Squares
         Fitting of Ellipses'
-    (**) http://mathworld.wolfram.com/Ellipse.html
-    (***) White, A. McHale, B. 'Faraday rotation data analysis with least-squares
+    (**) http://mathworld.wolfram.com/Ellipse.html (***) White, A. McHale, B. 'Faraday rotation data analysis with least-squares
         elliptical fitting'
 """
 
@@ -98,12 +97,15 @@ class LSqEllipse:
 
         #eigenvectors are the coefficients of an ellipse in general form
         #a*x^2 + 2*b*x*y + c*y^2 + 2*d*x + 2*f*y + g = 0 [eqn. 15) from (**) or (***)
+
         a = self.coef[0,0]
         b = self.coef[1,0]/2.
         c = self.coef[2,0]
         d = self.coef[3,0]/2.
         f = self.coef[4,0]/2.
         g = self.coef[5,0]
+
+        self.adjusted_coef = (a, b, c, d, f, g)
 
         #finding center of ellipse [eqn.19 and 20] from (**)
         x0 = (c*d-b*f)/(b**2.-a*c)
@@ -146,6 +148,9 @@ class LSqEllipse:
 
     def parameters(self):
         return self.center, self.width, self.height, self.phi
+
+    def coefficients(self):
+        return self.adjusted_coef
 
 
 def make_test_ellipse(center=[1,1], width=1, height=.6, phi=3.14/5):
